@@ -6,11 +6,20 @@ import "fmt"
 import "os"
 import "strings"
 import "sort"
+import "regexp"
+import "bufio"
 
 var forcemarkdown bool = false;
 var blogdir string = "/users/billo/sites/egopoly.com/blog"
 var masterdir string = "/users/billo/sites/egopoly.com/"
 
+type blogmonth struct {
+    year string
+    month string
+    posts []string
+}
+
+var monthmap = make(map[string]*blogmonth)
 
 func options() {
     for i := 0; i < len(os.Args); {
@@ -30,6 +39,55 @@ func options() {
         }
         i++
     }
+}
+
+func postprocess (monthdir string, year string, month string, postfile string) {
+    var thismonth *blogmonth
+    thismonth = monthmap[monthdir]
+    if thismonth == nil {
+        thismonth = &blogmonth{year, month, make([]string, 0)}
+    }
+    posts := thismonth.posts
+    re := regexp.MustCompile("^(.*)\\.txt")
+    matches := re.FindStringSubmatch(postfile)
+    slug := ""
+    if len(matches) > 1 {
+        slug = matches[1]
+        fmt.Printf("slug is %s\n", slug)
+    }
+    title := "wut"
+    datestamp := "1970-01-01 00:00"
+    preview := ""
+
+    f,err := os.Open(monthdir + "/" + postfile)
+    if err == nil {
+        defer f.Close()
+        
+        scanner := bufio.NewScanner(f)
+        lc := 0
+        for scanner.Scan() {
+            line := scanner.Text()
+            if lc == 0 {
+                title = line
+            } else if lc == 1 {
+            } else if lc == 2 {
+                datestamp = line
+            } else {
+                preview += line + "\n"
+            }
+            lc++
+        }
+        fmt.Printf("title = %s\n", title)
+        fmt.Printf("stamp = %s\n", datestamp)
+        fmt.Println(preview)
+
+    }
+
+    
+    if len(posts) > 0 {
+    }
+    
+    
 }
 
 func listdir (path string) []string {
@@ -53,7 +111,7 @@ func listdir (path string) []string {
     return entries
 }
 
-func monthscan (path string, month string) {
+func monthscan (path string, year string,  month string) {
     fmt.Println(month)
     monthdir := path + "/" + month
     entries := listdir(monthdir)
@@ -64,6 +122,9 @@ func monthscan (path string, month string) {
         }
     }
     sort.Strings(textfiles)
+    for _,tf := range textfiles {
+        postprocess(monthdir, year, month, tf)
+    }
     fmt.Println(textfiles)
 }
 
@@ -80,7 +141,7 @@ func yearscan (path string, year string) {
     }
     sort.Strings(months)
     for _,month := range months {
-        monthscan(yeardir, month)
+        monthscan(yeardir, year, month)
     }
 }
 
