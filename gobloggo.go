@@ -19,6 +19,19 @@ type blogmonth struct {
     posts []string
 }
 
+type blogpost struct {
+    title string
+    url string
+    baseurl string
+    monthdir string
+    postfile string
+    name string
+    year string
+    month string
+    shtmlfile string
+    preview string
+}
+
 var monthmap = make(map[string]*blogmonth)
 
 func options() {
@@ -80,6 +93,24 @@ func postprocess (monthdir string, year string, month string, postfile string) {
         fmt.Printf("title = %s\n", title)
         fmt.Printf("stamp = %s\n", datestamp)
         fmt.Println(preview)
+
+        filepath := fmt.Sprintf("%s/%s.txt", monthdir, slug)
+        htmlpath := fmt.Sprintf("%s/%s.ihtml", monthdir, slug)
+        shtmlpath := fmt.Sprintf("%s/%s.shtml", monthdir, slug)
+        shtmlbasepath := fmt.Sprintf("%s.shtml", slug)
+        plainhtmlbasepath := fmt.Sprintf("%s.html", slug)
+        url := fmt.Sprintf("%s/%s/%s.html", year, month, slug)
+
+        post := &blogpost{title, url, plainhtmlbasepath, monthdir, postfile, slug, year,
+            month, shtmlbasepath, preview}
+
+        mdcmd := fmt.Sprintf("Markdown.pl --html4tags %s > %s", filepath, htmlpath)
+
+        fmt.Printf("%s\n", post.title)
+        fmt.Printf("%s\n", shtmlpath)
+        fmt.Printf("%s\n", mdcmd)
+        
+
 
     }
 
