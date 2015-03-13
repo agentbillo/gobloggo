@@ -13,7 +13,7 @@ Essentially:
 You'll need a stock copy of Markdown.pl in your path to use this. 
 If you have special flavors of Markdown, you can alter this source pretty easily.
 
-Directories needed
+Directories needed:
 
     blogdir: this is where the .txt (Markdown) files should live
     masterdir: this is where some static boilerplate include files are
