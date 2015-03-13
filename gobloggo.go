@@ -1,4 +1,6 @@
 package main
+// This is my first go program. I'm probably doing everything wrong, wicked sorry.
+//
 // to compile and run:
 // go install github.com/agentbillo/gobloggo
 // ~/go/bin/gobloggo
@@ -24,7 +26,7 @@ var masterdir string = "/users/billo/sites/egopoly.com/"
 type blogmonth struct {
     year string
     month string
-    posts []string
+    posts []*blogpost
 }
 
 type blogpost struct {
@@ -41,7 +43,11 @@ type blogpost struct {
     stamp string
 }
 
+var monthindexblock string = ""
+var tweetblock string = ""
+
 var monthmap = make(map[string]*blogmonth)
+var allposts = make(map[string]*blogpost)
 
 func options() {
     for i := 0; i < len(os.Args); {
@@ -89,13 +95,17 @@ func pathexists(path string) bool {
     return true
 }
 
+//
+// This is where each post is created.  For each .txt file, create a container .shtml file that is
+// full page, and a .ihtml file that is the markdown-converted version of the .txt
+// 
 func postprocess (monthdir string, year string, month string, postfile string) {
     var thismonth *blogmonth
     thismonth = monthmap[monthdir]
     if thismonth == nil {
-        thismonth = &blogmonth{year, month, make([]string, 0)}
+        thismonth = &blogmonth{year, month, make([]*blogpost, 0)}
+        monthmap[monthdir] = thismonth
     }
-    posts := thismonth.posts
     re := regexp.MustCompile("^(.*)\\.txt")
     matches := re.FindStringSubmatch(postfile)
     slug := ""
@@ -131,7 +141,7 @@ func postprocess (monthdir string, year string, month string, postfile string) {
 
         filepath := fmt.Sprintf("%s/%s.txt", monthdir, slug)
         htmlpath := fmt.Sprintf("%s/%s.ihtml", monthdir, slug)
-        //shtmlpath := fmt.Sprintf("%s/%s.shtml", monthdir, slug)
+        shtmlpath := fmt.Sprintf("%s/%s.shtml", monthdir, slug)
         shtmlbasepath := fmt.Sprintf("%s.shtml", slug)
         plainhtmlbasepath := fmt.Sprintf("%s.html", slug)
         url := fmt.Sprintf("%s/%s/%s.html", year, month, slug)
@@ -139,7 +149,24 @@ func postprocess (monthdir string, year string, month string, postfile string) {
         post := &blogpost{title, url, plainhtmlbasepath, monthdir, postfile, slug, year,
             month, shtmlbasepath, preview, datestamp}
 
-        mdcmd := fmt.Sprintf("Markdown.pl --html4tags %s --output %s", filepath, htmlpath)
+        thismonth.posts = append(thismonth.posts, post)
+        allposts[datestamp] = post
+
+        shtmlf, err := os.Create(shtmlpath)
+        if err != nil {
+            panic(err)
+        }
+        defer shtmlf.Close()
+
+        writer := bufio.NewWriter(shtmlf)
+        _, err = writer.WriteString("<!-- made by go blog go! -->\n")
+        _, err = writer.WriteString(fmt.Sprintf("<!--#set var=\"title\" value=\"%s\" -->\n", title))
+        _, err = writer.WriteString("<!--#include virtual=\"/header.shtml\" -->\n")
+        _, err = writer.WriteString(fmt.Sprintf("<!--#include virtual=\"%s.ihtml\" -->\n", slug))
+        _, err = writer.WriteString("<!--#include virtual=\"/footer.shtml\" -->\n")
+        writer.Flush()
+
+        mdcmd := fmt.Sprintf("Markdown.pl --html4tags %s > %s", filepath, htmlpath)
         if forcemarkdown || !pathexists(htmlpath) || isolder(htmlpath, filepath) {
             cmd := exec.Command("Markdown.pl", "--html4tags", filepath)
             output, err := cmd.Output()
@@ -155,17 +182,12 @@ func postprocess (monthdir string, year string, month string, postfile string) {
             //fmt.Printf("%s\n", shtmlpath)
             fmt.Printf("%s\n", mdcmd)
         }
-
-        
-
-
     }
 
     
-    if len(posts) > 0 {
+    if len(thismonth.posts) > 0 {
+        fmt.Printf("posts len = %d\n", len(thismonth.posts))
     }
-    
-    
 }
 
 func listdir (path string) []string {
@@ -241,8 +263,120 @@ func blogscan (path string) {
     }
 }
 
+func reversekeys (m map[string]*blogmonth) []string {
+    keys := make([]string, 0, len(m))
+    for key := range m {
+        keys = append(keys, key)
+    }
+    sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+    
+    return keys
+}
+
+func reversepostkeys (m map[string]*blogpost) []string {
+    keys := make([]string, 0, len(m))
+    for key := range m {
+        keys = append(keys, key)
+    }
+    sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+    
+    return keys
+}
+
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
+// 
+// Assembles master index, month indicies and RSS feed.
+//
+func postdump () {
+    fmt.Println("***POST DUMP***")
+    dat, err := ioutil.ReadFile(masterdir + "/" + "monthindex.shtml")
+    check(err)
+    monthindexblock = string(dat)
+
+    dat, err = ioutil.ReadFile(masterdir + "/" + "tweet.shtml")
+    check(err)
+    tweetblock = string(dat)
+
+
+    sidebarf, err := os.Create(fmt.Sprintf("%s/sidebar.shtml", blogdir))
+    if err != nil {
+        panic(err)
+    }
+    defer sidebarf.Close()
+
+    sidebarf.WriteString("<div class=\"sidebar\">\n")
+    sidebarf.WriteString("<p>Archive</p>\n<ul class=\"sidebarlist\">")
+
+    reversemonths := reversekeys(monthmap)
+    for _,k := range reversemonths {
+        month := monthmap[k]
+        posts := month.posts
+        monthurl := strings.Replace(k, blogdir + "/", "", 1)
+        link := fmt.Sprintf("<li><a href=\"/%s}\">%s(%d)</a></li>\n", monthurl, 
+            monthurl, len(posts))
+        sidebarf.WriteString(link)
+        //fmt.Println(posts)
+
+        // write the month index here
+        contentpath := k + "/contents.shtml"
+        indexpath := k + "/index.shtml"
+        indexf, err := os.Create(indexpath)
+        if err != nil {
+            panic(err)
+        }
+        defer indexf.Close()
+        titleset := fmt.Sprintf("<!--#set var=\"title\" value=\"%s\" -->\n", monthurl)
+        indexf.WriteString(titleset)
+        indexf.WriteString(monthindexblock)
+
+        mcontentf, err := os.Create(contentpath)
+        if err != nil {
+            panic(err)
+        }
+        defer mcontentf.Close()
+        for _,p := range posts {
+            entry := fmt.Sprintf("<div class=\"monthindexentry\"><a href=\"%s\">%s</a></div>\n",
+                p.baseurl, p.title)
+            mcontentf.WriteString(entry)
+        }
+        
+
+    }
+    sidebarf.WriteString("</ul></div>\n")
+
+    contentf, err := os.Create(fmt.Sprintf("%s/contents.shtml", blogdir))
+    if err != nil {
+        panic(err)
+    }
+    defer contentf.Close()
+    reversestamps := reversepostkeys(allposts)
+    count := 0
+    for _,k := range reversestamps {
+        post := allposts[k]
+        if count < 5 {
+            contentf.WriteString("<div class=\"frontindexentry\">\n")
+            ps := fmt.Sprintf("<!--#include virtual=\"%s/%s/%s.ihtml\" -->\n", 
+                post.year, post.month, post.name)
+            contentf.WriteString(ps)
+            ps = fmt.Sprintf("<a href=\"%s\">Permalink</a>\n", post.url)
+            contentf.WriteString(ps)
+            contentf.WriteString("</div>\n")
+            
+        }
+        count++
+    }
+    
+}
+
+
 func main() {
     options()
     blogscan(blogdir)
+    postdump()
 }
 
