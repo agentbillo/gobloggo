@@ -19,9 +19,10 @@ import "io/ioutil"
 
 //import "time"
 
-var forcemarkdown bool = false;
-var blogdir string = "/users/billo/sites/egopoly.com/blog"
-var masterdir string = "/users/billo/sites/egopoly.com/"
+var forcemarkdown bool = false
+var blogdir string = "/tmp/blog"  // change this to your default real blog on web server
+var masterdir string = "/tmp/"    // change this to a place to keep the monthindex and tweetblock
+var gpostcount int = 0
 
 type blogmonth struct {
     year string
@@ -54,16 +55,16 @@ func options() {
         arg := os.Args[i]
         switch {
         case strings.HasPrefix(arg, "-force"):
-            fmt.Println("FORCE\n")
+            //fmt.Println("FORCE\n")
             forcemarkdown = true; 
         case strings.HasPrefix(arg, "-blog"):
             i++
             blogdir = os.Args[i]
-            fmt.Printf("blogdir=%s\n", blogdir)
+            //fmt.Printf("blogdir=%s\n", blogdir)
         case strings.HasPrefix(arg, "-master"):
             i++
             masterdir = os.Args[i]
-            fmt.Printf("masterdir=%s\n", masterdir)
+            //fmt.Printf("masterdir=%s\n", masterdir)
         }
         i++
     }
@@ -135,7 +136,7 @@ func postprocess (monthdir string, year string, month string, postfile string) {
             }
             lc++
         }
-        fmt.Printf("title = %s\n", title)
+        //fmt.Printf("title = %s\n", title)
         //fmt.Printf("stamp = %s\n", datestamp)
         //fmt.Println(preview)
 
@@ -178,7 +179,7 @@ func postprocess (monthdir string, year string, month string, postfile string) {
             if err != nil {
                 panic(err)
             }
-            fmt.Printf("%s\n", post.title)
+            //fmt.Printf("%s\n", post.title)
             //fmt.Printf("%s\n", shtmlpath)
             fmt.Printf("%s\n", mdcmd)
         }
@@ -186,8 +187,11 @@ func postprocess (monthdir string, year string, month string, postfile string) {
 
     
     if len(thismonth.posts) > 0 {
-        fmt.Printf("posts len = %d\n", len(thismonth.posts))
+        //fmt.Printf("posts len = %d\n", len(thismonth.posts))
     }
+    gpostcount++
+    fmt.Printf("Processing %d\r", gpostcount)
+    
 }
 
 func listdir (path string) []string {
@@ -212,7 +216,7 @@ func listdir (path string) []string {
 }
 
 func monthscan (path string, year string,  month string) {
-    fmt.Println(month)
+    //fmt.Println(month)
     monthdir := path + "/" + month
     entries := listdir(monthdir)
     textfiles := make([]string, 0)
@@ -225,12 +229,12 @@ func monthscan (path string, year string,  month string) {
     for _,tf := range textfiles {
         postprocess(monthdir, year, month, tf)
     }
-    fmt.Println(textfiles)
+    //fmt.Println(textfiles)
 }
 
 
 func yearscan (path string, year string) {
-    fmt.Println(year)
+    //fmt.Println(year)
     yeardir := path + "/" + year
     entries := listdir(yeardir)
     months := make([]string, 0)
@@ -257,7 +261,7 @@ func blogscan (path string) {
         }
     }
     sort.Strings(years)
-    fmt.Println(years)
+    //fmt.Println(years)
     for _,year := range years {
         yearscan(path, year)
     }
@@ -293,7 +297,7 @@ func check(e error) {
 // Assembles master index, month indicies and RSS feed.
 //
 func postdump () {
-    fmt.Println("***POST DUMP***")
+    //fmt.Println("***POST DUMP***")
     dat, err := ioutil.ReadFile(masterdir + "/" + "monthindex.shtml")
     check(err)
     monthindexblock = string(dat)
@@ -377,6 +381,7 @@ func postdump () {
 func main() {
     options()
     blogscan(blogdir)
+    fmt.Println("")
     postdump()
 }
 
