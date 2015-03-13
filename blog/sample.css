@@ -1,0 +1,84 @@
+/* stupid blog css */
+
+body {
+    font-family: Menlo,Monaco,Courier;
+    background-color: black;
+    color: rgb(200,200,0);
+}
+
+:link {
+    color: rgb(0,255,0);
+}
+
+:visited {
+    color: rgb(200,200,0);
+ }
+
+
+.post {
+    display: inline;
+    float: left;
+    width: 640px;
+    
+}
+
+.month {
+    display: inline;
+    float: left;
+    width: 640px;
+    
+}
+
+.strike {
+    text-decoration: line-through;
+}
+
+.monthindexentry {
+    display: inline;
+    float: left;
+    width: 600px;
+}
+
+.frontindexentry {
+    display: inline;
+    float: left;
+    width: 600px;
+    margin-bottom: 100px;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+
+.frontpage {
+    display: inline;
+    float: left;
+    width: 640px;
+    
+}
+
+.reset {
+    clear: right;
+ }
+
+.sidebar {
+    /*    position: absolute;  */
+    display: inline;
+    float: left;
+    width: 300px;
+    /* left: 700px; */
+    /* top:120px; */
+ }
+.footer {
+    clear: left;
+ }
+
+.sidebarlist {
+     list-style: none;
+ }
+
+.titlelink {
+    color: rgb(200,200,0);
+ }
+
+

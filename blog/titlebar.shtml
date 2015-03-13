@@ -1,0 +1,7 @@
+<div class="titlebar">
+<h1><a class="titlelink" href="/">EGOPOLY</a></h1>
+<div class="blogsubhead">
+<!--#include virtual="/subheadtext.shtml"-->
+</div>
+<hr class="headingrule"/>
+</div>

@@ -1,0 +1,3 @@
+<!--#include virtual="/monthheader.shtml" -->
+<!--#include virtual="contents.shtml" -->
+<!--#include virtual="/monthfooter.shtml" -->
