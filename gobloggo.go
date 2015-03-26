@@ -20,8 +20,8 @@ import "io/ioutil"
 //import "time"
 
 var forcemarkdown bool = false
-var blogdir string = "/tmp/blog"  // change this to your default real blog on web server
-var masterdir string = "/tmp/"    // change this to a place to keep the monthindex and tweetblock
+var blogdir string = "/Users/billo/Sites/egopoly.com/blog"  // change this to your default real blog on web server
+var masterdir string = "/Users/billo/Sites/egopoly.com"    // change this to a place to keep the monthindex and tweetblock
 var gpostcount int = 0
 
 type blogmonth struct {
@@ -127,7 +127,9 @@ func postprocess (monthdir string, year string, month string, postfile string) {
         for scanner.Scan() {
             line := scanner.Text()
             if lc == 0 {
-                title = line
+                title = strings.TrimLeft(line, "*")
+                title = strings.TrimRight(title, "*")
+                
             } else if lc == 1 {
             } else if lc == 2 {
                 datestamp = line
@@ -321,7 +323,7 @@ func postdump () {
         month := monthmap[k]
         posts := month.posts
         monthurl := strings.Replace(k, blogdir + "/", "", 1)
-        link := fmt.Sprintf("<li><a href=\"/%s}\">%s(%d)</a></li>\n", monthurl, 
+        link := fmt.Sprintf("<li><a href=\"/%s\">%s(%d)</a></li>\n", monthurl, 
             monthurl, len(posts))
         sidebarf.WriteString(link)
         //fmt.Println(posts)

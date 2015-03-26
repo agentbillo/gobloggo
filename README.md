@@ -15,8 +15,10 @@ If you have special flavors of Markdown, you can alter this source pretty easily
 
 Directories needed:
 
+<code>
     blogdir: this is where the .txt (Markdown) files should live
     masterdir: this is where some static boilerplate include files are
+</code>
 
 Files needed in blogdir. These are not altered by the script:
 
