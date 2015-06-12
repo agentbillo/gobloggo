@@ -16,6 +16,7 @@ import "sort"
 import "regexp"
 import "bufio"
 import "io/ioutil"
+import "github.com/russross/blackfriday"
 
 //import "time"
 
@@ -23,6 +24,7 @@ var forcemarkdown bool = false
 var blogdir string = "/Users/billo/Sites/egopoly.com/blog"  // change this to your default real blog on web server
 var masterdir string = "/Users/billo/Sites/egopoly.com"    // change this to a place to keep the monthindex and tweetblock
 var gpostcount int = 0
+var gomode bool = false
 
 type blogmonth struct {
     year string
@@ -57,6 +59,9 @@ func options() {
         case strings.HasPrefix(arg, "-force"):
             //fmt.Println("FORCE\n")
             forcemarkdown = true; 
+        case strings.HasPrefix(arg, "-go"):
+            //fmt.Println("GO MODE\n")
+            gomode = true; 
         case strings.HasPrefix(arg, "-blog"):
             i++
             blogdir = os.Args[i]
@@ -169,21 +174,24 @@ func postprocess (monthdir string, year string, month string, postfile string) {
         _, err = writer.WriteString("<!--#include virtual=\"/footer.shtml\" -->\n")
         writer.Flush()
 
-        mdcmd := fmt.Sprintf("Markdown.pl --html4tags %s > %s", filepath, htmlpath)
         if forcemarkdown || !pathexists(htmlpath) || isolder(htmlpath, filepath) {
-            cmd := exec.Command("Markdown.pl", "--html4tags", filepath)
-            output, err := cmd.Output()
-            if err != nil {
-                fmt.Printf("***Markdown failed: %s\n", err)
-                return
+
+            var output []byte
+            if gomode {
+                fmt.Printf("Go mode markdown %s\n", filepath)
+                output = markdowngo(filepath)
+            } else {
+                mdcmd := fmt.Sprintf("Markdown.pl --html4tags %s", filepath)
+                fmt.Printf("%s\n", mdcmd)
+                output = markdownperl(filepath)
             }
+
             err = ioutil.WriteFile(htmlpath, output, 0644)
             if err != nil {
                 panic(err)
             }
             //fmt.Printf("%s\n", post.title)
             //fmt.Printf("%s\n", shtmlpath)
-            fmt.Printf("%s\n", mdcmd)
         }
     }
 
@@ -194,6 +202,27 @@ func postprocess (monthdir string, year string, month string, postfile string) {
     gpostcount++
     fmt.Printf("Processing %d\r", gpostcount)
     
+}
+
+func markdowngo (filepath string) []byte {
+    input, err := ioutil.ReadFile(filepath)
+    if err != nil {
+        fmt.Printf("***Failed to read %s: %s\n", filepath, err)
+        return nil
+    }
+    output := blackfriday.MarkdownBasic(input)
+    
+    return output
+}
+
+func markdownperl (filepath string) []byte {
+    cmd := exec.Command("Markdown.pl", "--html4tags", filepath)
+    output, err := cmd.Output()
+    if err != nil {
+        fmt.Printf("***Markdown failed: %s\n", err)
+        return nil
+    }
+    return output
 }
 
 func listdir (path string) []string {
