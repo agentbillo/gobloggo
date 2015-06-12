@@ -11,7 +11,7 @@ Essentially:
  5. run this script
 
 I've updated the program to use a Go implementation of Markdown
-([blackfriday](https://github.com/russross/blackfriday/blob/master/README.md). Forking
+([blackfriday](https://github.com/russross/blackfriday/blob/master/README.md)). Forking
 and execing Perl, a complete repub of myown blog of about 500 articles
 took about 15 seconds. With the native implementation it takes 0.12
 seconds. Yay.
