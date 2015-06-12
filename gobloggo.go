@@ -24,7 +24,7 @@ var forcemarkdown bool = false
 var blogdir string = "/Users/billo/Sites/egopoly.com/blog"  // change this to your default real blog on web server
 var masterdir string = "/Users/billo/Sites/egopoly.com"    // change this to a place to keep the monthindex and tweetblock
 var gpostcount int = 0
-var gomode bool = false
+var gomode bool = true
 
 type blogmonth struct {
     year string
@@ -62,6 +62,9 @@ func options() {
         case strings.HasPrefix(arg, "-go"):
             //fmt.Println("GO MODE\n")
             gomode = true; 
+        case strings.HasPrefix(arg, "-perl"):
+            //fmt.Println("GO MODE\n")
+            gomode = false; 
         case strings.HasPrefix(arg, "-blog"):
             i++
             blogdir = os.Args[i]
