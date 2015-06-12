@@ -10,8 +10,11 @@ Essentially:
  4. enable apache server side includes to parse .shtml files
  5. run this script
 
-You'll need a stock copy of Markdown.pl in your path to use this. 
-If you have special flavors of Markdown, you can alter this source pretty easily.
+I've updated the program to use a Go implementation of Markdown
+([blackfriday](https://github.com/russross/blackfriday/blob/master/README.md). Forking
+and execing Perl, a complete repub of myown blog of about 500 articles
+took about 15 seconds. With the native implementation it takes 0.12
+seconds. Yay.
 
 Directories needed:
 
