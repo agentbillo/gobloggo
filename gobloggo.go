@@ -57,22 +57,17 @@ func options() {
         arg := os.Args[i]
         switch {
         case strings.HasPrefix(arg, "-force"):
-            //fmt.Println("FORCE\n")
             forcemarkdown = true; 
         case strings.HasPrefix(arg, "-go"):
-            //fmt.Println("GO MODE\n")
             gomode = true; 
         case strings.HasPrefix(arg, "-perl"):
-            //fmt.Println("GO MODE\n")
             gomode = false; 
         case strings.HasPrefix(arg, "-blog"):
             i++
             blogdir = os.Args[i]
-            //fmt.Printf("blogdir=%s\n", blogdir)
         case strings.HasPrefix(arg, "-master"):
             i++
             masterdir = os.Args[i]
-            //fmt.Printf("masterdir=%s\n", masterdir)
         }
         i++
     }
